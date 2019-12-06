@@ -1,0 +1,12 @@
+{
+    "machine_learning": {
+        "EPOCH_SATURATION": 20,
+        "LEARNING_RATE": 0.003,
+        "MAX_EPOCHS": 100,
+        "N_EPOCHS": 1
+    }, 
+    "results": {
+        "SAVE_MODEL_DIR": "model/saved_models/",
+        "SAVE_MODEL_FILE_FC2": "FC2.sm"
+    }
+}
