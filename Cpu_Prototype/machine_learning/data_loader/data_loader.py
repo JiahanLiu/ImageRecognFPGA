@@ -40,6 +40,9 @@ def get_test_dataset():
     
     return test_dataset
 
+# def get_custom_dataset():
+
+
 def fill_set_straight(source_dataset, target_set, target_set_size, index):
     for j in range(target_set_size):
         item = source_dataset.__getitem__(index)
@@ -60,7 +63,7 @@ def get_train_dataloader():
     index = fill_set_straight(train_dataset, validation_set, VALIDATION_SIZE, index)
     index = fill_set_straight(train_dataset, train_set, train_set_size, index)
 
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH_SIZE, shuffle=True)
     validation_loader = torch.utils.data.DataLoader(dataset=validation_set, batch_size=VALIDATION_SIZE, shuffle=False)
 
     return train_loader, validation_loader
@@ -73,5 +76,3 @@ def get_test_dataloader():
     
     return test_loader
 
-def test():
-    print("Test")

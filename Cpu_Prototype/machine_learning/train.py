@@ -1,5 +1,5 @@
 from data_loader import data_loader
-from model import model, nn_architectures
+from model import model, nn_architectures, evaluate
 import util
 
 import json
@@ -52,6 +52,14 @@ def test_saved_model(network_architecture, get_train_loader, get_test_loader, le
 
     print_results(epoch_n = "N/A", loss=str(loss.item()), validation_accuracy=str(validation_accuracy), acc=str(acc))
 
+def test_single_saved_model(network_architecture, get_train_loader, get_test_loader, learning_rate, load_model_function):
+    train_loader, validation_loader = get_train_loader()
+    test_loader = get_test_loader()
+    net = model.Model(network_architecture, train_loader, validation_loader, test_loader, learning_rate)
+    
+    load_model_function(net.get_architecture(), net.get_device())
+    evaluate.single_test(net.get_architecture(), test_loader, net.get_device())
+
 def stop_at_N_epochs_closure(N_epoch):
     def end_N_epochs(n_epoch, measures):
         if(n_epoch < N_epoch - 1):
@@ -102,8 +110,9 @@ def main():
     save_architecture_to_file = util.save_architecture_to_file_closure(save_path)
     load_architecture_from_file = util.load_architecture_from_file_closure(save_path)
 
-    train(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file)
-    test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
+    # train(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file)
+    # test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
+    test_single_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
 
 if __name__ == "__main__":
     main()
