@@ -112,7 +112,10 @@ def main():
 
     # train(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file)
     # test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
-    test_single_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
+    # test_single_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
+    data_loader.get_custom_loader()
+    # test_single_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_custom_loader, LEARNING_RATE, load_architecture_from_file)
+    
 
 if __name__ == "__main__":
     main()

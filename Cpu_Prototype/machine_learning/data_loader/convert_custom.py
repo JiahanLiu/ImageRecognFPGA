@@ -40,7 +40,7 @@ def main():
         config = json.load(config_file)
 
         JPG_DATA_DIR = config['dataset']['JPG_DATA_DIR']
-        JPG_SAVE_DIR = config['dataset']['JPG_SAVE_DIR']
+        NUMPY_SAVE_DIR = config['dataset']['NUMPY_SAVE_DIR']
 
     jpg_name = "Test_7_0.JPG"
     pwd_path = os.path.abspath(os.path.dirname(__file__))

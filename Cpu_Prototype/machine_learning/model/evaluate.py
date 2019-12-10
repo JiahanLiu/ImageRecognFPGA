@@ -38,7 +38,7 @@ def single_test(architecture, data_loader, device):
         title = "Pred: " + str(pred) + " | Correct: " + str(y_1)
         util.imshow(x_1, title)
 
-        print((x_1.numpy()))
+        # print((x_1.numpy()))
 
 def loss(architecture, data_loader, loss_fn, device):
     architecture.eval()

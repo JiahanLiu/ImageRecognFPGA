@@ -1,7 +1,12 @@
+import numpy as np
 import torch
 from torchvision import datasets, transforms
 
+import json
 import os
+import sys
+
+np.set_printoptions(threshold=sys.maxsize)
 
 DIRPATH = os.getcwd()
 DATAPATH = DIRPATH + '/data/'
@@ -18,7 +23,7 @@ class PartitionedDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         return self.dataset[index]
-        
+
     def __add__(self, other):
         return self.dataset.append(other)
 
@@ -40,8 +45,24 @@ def get_test_dataset():
     
     return test_dataset
 
-# def get_custom_dataset():
+def get_custom_dataset():
+    with open('config.json') as config_file:
+        config = json.load(config_file)
 
+        NUMPY_SAVE_DIR = config['dataset']['NUMPY_SAVE_DIR']
+
+    custom_dataset = []
+
+    numpy_file = "Test_7_0.npy"
+    pwd_path = os.path.abspath(os.path.dirname(__file__))
+    numpy_path = os.path.join(pwd_path, NUMPY_SAVE_DIR, numpy_file)
+
+    img_np = np.load(numpy_path)
+    img_tensor = torch.from_numpy(img_np)
+
+    custom_dataset.append(img_tensor)
+
+    return custom_dataset
 
 def fill_set_straight(source_dataset, target_set, target_set_size, index):
     for j in range(target_set_size):
@@ -67,6 +88,21 @@ def get_train_dataloader():
     validation_loader = torch.utils.data.DataLoader(dataset=validation_set, batch_size=VALIDATION_SIZE, shuffle=False)
 
     return train_loader, validation_loader
+
+def get_custom_loader():
+    custom_dataset = get_custom_dataset()
+    total_size = len(custom_dataset)
+
+    test_dataset = get_test_dataset()
+
+    print((custom_dataset.numpy()))
+    # print((test_dataset))
+    # print(type(custom_dataset))
+    # print(type(test_dataset))
+
+    custom_loader = torch.utils.data.DataLoader(dataset=custom_dataset, batch_size=total_size, shuffle=False)
+
+    return custom_loader
 
 def get_test_dataloader():
     test_dataset = get_test_dataset()
