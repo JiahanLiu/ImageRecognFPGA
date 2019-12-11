@@ -19,26 +19,39 @@ def accuracy(architecture, data_loader, device):
 
     return acc
 
-def single_test(architecture, data_loader, device):
+def single_test(architecture, data_loader, device, target_index):
     saved_test_x = None
 
-    correct = 0
+    current_index = 0
     architecture.eval()
     with torch.no_grad():
-        batch_x_y = next(iter(data_loader))
-        batch_x = batch_x_y[0]
-        batch_y = batch_x_y[1]
-        x_1 = batch_x[0]
-        y_1 = batch_y[0]
-        
-        x_1 = x_1.to(device)
-        y_1 = y_1.to(device)
-        output = architecture(x_1)
-        pred = output.argmax(dim=1, keepdim=True)
-        title = "Pred: " + str(pred) + " | Correct: " + str(y_1)
-        util.imshow(x_1, title)
+        for test_x, test_y in data_loader:
+            current_index = current_index + 1
+            x_1 = test_x[target_index]
+            y_1 = test_y[target_index]
+            
+            x_1 = x_1.to(device)
+            y_1 = y_1.to(device)
+            output = architecture(x_1)
+            pred = output.argmax(dim=1, keepdim=True)
+            title = "Pred: " + str(pred) + " | Correct: " + str(y_1)
+            util.imshow(x_1, title)
 
-        # print((x_1.numpy()))
+        # # print(type(data_loader))
+        # for i in range(target_index+1):
+        #     print("iterated")
+        #     batch_x_y = next(iter(data_loader))
+        # batch_x = batch_x_y[0]
+        # batch_y = batch_x_y[1]
+        # x_1 = batch_x[0]
+        # y_1 = batch_y[0]
+        
+        # x_1 = x_1.to(device)
+        # y_1 = y_1.to(device)
+        # output = architecture(x_1)
+        # pred = output.argmax(dim=1, keepdim=True)
+        # title = "Pred: " + str(pred) + " | Correct: " + str(y_1)
+        # util.imshow(x_1, title)
 
 def loss(architecture, data_loader, loss_fn, device):
     architecture.eval()

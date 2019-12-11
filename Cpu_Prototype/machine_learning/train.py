@@ -36,7 +36,7 @@ def train(network_architecture, get_train_loader, get_test_loader, end_function,
             if(DEBUG):
                 print("Saving Model")
             save_model_function(net.get_architecture())
-        print_results(epoch_n = str(epoch_n), loss=str(loss.item()), validation_accuracy=str(validation_accuracy), acc=str(acc))
+        print_results(epoch_n=str(epoch_n), loss=str(loss.item()), validation_accuracy=str(validation_accuracy), acc=str(acc))
 
         epoch_n = epoch_n + 1
 
@@ -50,15 +50,15 @@ def test_saved_model(network_architecture, get_train_loader, get_test_loader, le
     validation_accuracy = net.get_validation_accuracy()
     acc = net.get_test_accuracy()
 
-    print_results(epoch_n = "N/A", loss=str(loss.item()), validation_accuracy=str(validation_accuracy), acc=str(acc))
+    print_results(epoch_n="N/A", loss=str(loss.item()), validation_accuracy=str(validation_accuracy), acc=str(acc))
 
-def test_single_saved_model(network_architecture, get_train_loader, get_test_loader, learning_rate, load_model_function):
+def test_single_saved_model(network_architecture, get_train_loader, get_test_loader, learning_rate, load_model_function, target_index):
     train_loader, validation_loader = get_train_loader()
     test_loader = get_test_loader()
     net = model.Model(network_architecture, train_loader, validation_loader, test_loader, learning_rate)
     
     load_model_function(net.get_architecture(), net.get_device())
-    evaluate.single_test(net.get_architecture(), test_loader, net.get_device())
+    evaluate.single_test(net.get_architecture(), test_loader, net.get_device(), target_index)
 
 def stop_at_N_epochs_closure(N_epoch):
     def end_N_epochs(n_epoch, measures):
@@ -111,11 +111,16 @@ def main():
     load_architecture_from_file = util.load_architecture_from_file_closure(save_path)
 
     # train(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file)
-    # test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
-    # test_single_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
-    data_loader.get_custom_loader()
-    # test_single_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_custom_loader, LEARNING_RATE, load_architecture_from_file)
     
+    # test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
+    # test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_custom_loader, LEARNING_RATE, load_architecture_from_file)
+
+    temp_index = 1
+    # test_single_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file, target_index=temp_index)
+    test_single_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_custom_loader, LEARNING_RATE, load_architecture_from_file, target_index=temp_index)
+    
+    # data_loader.get_custom_dataset()
+    # data_loader.get_custom_loader()ff
 
 if __name__ == "__main__":
     main()

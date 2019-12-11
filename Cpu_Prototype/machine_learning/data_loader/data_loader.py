@@ -53,14 +53,25 @@ def get_custom_dataset():
 
     custom_dataset = []
 
-    numpy_file = "Test_7_0.npy"
     pwd_path = os.path.abspath(os.path.dirname(__file__))
-    numpy_path = os.path.join(pwd_path, NUMPY_SAVE_DIR, numpy_file)
+    jpg_dir_path = os.path.join(pwd_path, NUMPY_SAVE_DIR)
+    all_files = os.listdir(jpg_dir_path)
+    npy_files = [files for files in all_files if ('npy' == files[-3:])]
+    
+    for numpy_file in npy_files:
+        first_underscore = numpy_file.index("_")
+        second_underscore = numpy_file.index("_", first_underscore+1)
+        label = int(numpy_file[first_underscore+1:second_underscore])
+        label_np = np.array([label])
 
-    img_np = np.load(numpy_path)
-    img_tensor = torch.from_numpy(img_np)
+        pwd_path = os.path.abspath(os.path.dirname(__file__))
+        numpy_path = os.path.join(pwd_path, NUMPY_SAVE_DIR, numpy_file)
 
-    custom_dataset.append(img_tensor)
+        img_np = np.load(numpy_path)
+        img_tensor = torch.from_numpy(img_np)
+        label_tensor = torch.from_numpy(label_np)
+
+        custom_dataset.append([img_tensor, label_tensor])
 
     return custom_dataset
 
@@ -92,13 +103,6 @@ def get_train_dataloader():
 def get_custom_loader():
     custom_dataset = get_custom_dataset()
     total_size = len(custom_dataset)
-
-    test_dataset = get_test_dataset()
-
-    print((custom_dataset.numpy()))
-    # print((test_dataset))
-    # print(type(custom_dataset))
-    # print(type(test_dataset))
 
     custom_loader = torch.utils.data.DataLoader(dataset=custom_dataset, batch_size=total_size, shuffle=False)
 
