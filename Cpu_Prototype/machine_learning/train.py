@@ -110,7 +110,7 @@ def main():
     save_architecture_to_file = util.save_architecture_to_file_closure(save_path)
     load_architecture_from_file = util.load_architecture_from_file_closure(save_path)
 
-    # train(nn_architectures.NetFC_2, data_loader.get_train_dataloader_processed, data_loader.get_test_dataloader_processed, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file)
+    train(nn_architectures.NetCNN_convrelu3_relu3, data_loader.get_train_dataloader_processed, data_loader.get_test_dataloader_processed, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file)
     # train(nn_architectures.NetFC_2, data_loader.get_train_dataloader_processed, data_loader.get_custom_loader, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file)
 
     # test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
@@ -123,7 +123,7 @@ def main():
     # data_loader.get_custom_dataset()
     # data_loader.get_custom_loader()
 
-    data_loader.get_train_dataloader_processed()
+    # data_loader.get_train_dataloader_processed()
 
 
 if __name__ == "__main__":
