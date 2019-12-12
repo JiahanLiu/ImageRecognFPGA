@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torchvision import datasets, transforms
+import torchvision
 
 import cv2
 import json
@@ -32,19 +33,31 @@ class PartitionedDataset(torch.utils.data.Dataset):
         return self.dataset.append(other)
 
 def get_train_dataset():
+    transforms = [
+        torchvision.transforms.RandomAffine((-15,15), translate=(.2,.2)),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Lambda(lambda x: preprocess_data(x))
+    ]
+
     train_dataset = datasets.MNIST(
         root=DATAPATH, 
         train=True, 
-        transform=transforms.ToTensor(),
+        transform=torchvision.transforms.Compose(transforms),
         download=True)
         
     return train_dataset
 
 def get_test_dataset():
+    transforms = [
+        torchvision.transforms.RandomAffine((-15,15), translate=(.2,.2)),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Lambda(lambda x: preprocess_data(x))
+    ]
+
     test_dataset = datasets.MNIST(
         root=DATAPATH, 
         train=False, 
-        transform=transforms.ToTensor(),
+        transform=torchvision.transforms.Compose(transforms),
         download=True)
     
     return test_dataset
@@ -86,6 +99,18 @@ def fill_set_straight(source_dataset, target_set, target_set_size, index):
         target_set.__add__(item)
 
     return index
+
+def preprocess_data(item):
+    input_np = item.numpy()
+    input_np = input_np * 255
+    input_np = input_np.astype(np.uint8)
+    input_np = input_np.reshape(28,28)
+    (ret, input_np) = cv2.threshold(input_np, 0, 255, cv2.THRESH_OTSU)
+    input_np = input_np.astype(np.float32)
+    input_np = input_np.reshape(1,28,28)
+    input_tensor = torch.from_numpy(input_np)
+    
+    return input_tensor
 
 def process_and_fill_set_straight(source_dataset, target_set, target_set_size, index):
     for j in range(target_set_size):
@@ -146,9 +171,7 @@ def get_train_dataloader_processed():
     index = 0
     # index = process_and_fill_set_straight(train_dataset, validation_set, 1, index)
     index = fill_set_straight(train_dataset, validation_set, VALIDATION_SIZE, index)
-    print(index)
     index = fill_set_straight(train_dataset, train_set, train_set_size, index)
-    print(index)
 
     train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH_SIZE, shuffle=True)
     validation_loader = torch.utils.data.DataLoader(dataset=validation_set, batch_size=VALIDATION_SIZE, shuffle=False)
