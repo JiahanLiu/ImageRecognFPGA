@@ -34,7 +34,7 @@ class PartitionedDataset(torch.utils.data.Dataset):
 
 def get_train_dataset():
     transforms = [
-        torchvision.transforms.RandomAffine((-15,15), translate=(.2,.2)),
+        torchvision.transforms.RandomAffine((-15,15), translate=(.2,.2), scale=(.75,1.25)),
         torchvision.transforms.ToTensor(),
         torchvision.transforms.Lambda(lambda x: preprocess_data(x))
     ]
