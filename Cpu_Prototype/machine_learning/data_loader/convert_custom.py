@@ -33,12 +33,11 @@ def jpg_to_numpy(jpg_path, save_path):
         img_np = img_np.astype(np.float32)
         img_np = img_np.reshape(1,target_height,target_width)
         np.save(save_path, img_np)
-        # print(img_np)
 
-        # img_tensor = torch.from_numpy(img_np)
+        img_tensor = torch.from_numpy(img_np)
         # torch.save(img_tensor, save_path)
         # img_tensor = torch.load(save_path)
-        # util.imshow(img_tensor)
+        util.imshow(img_tensor)
         
 def main(): 
     with open('../config.json') as config_file:
