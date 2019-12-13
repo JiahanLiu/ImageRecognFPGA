@@ -26,13 +26,11 @@ class Model:
         nn_architectures.parameter_init(self.architecture)
 
     def train(self):
-        self.architecture.train()
-        for batch_idx, (train_x, train_y) in enumerate(self.train_loader):
-            train_x = train_x.to(self.DEVICE)
-            train_y = train_y.to(self.DEVICE)
+        for images, labels in self.train_loader:
+            images = images.view(images.shape[0], -1) # flatten image into 1D vector
             self.optimizer.zero_grad()
-            outputs = self.architecture(train_x)
-            loss = self.loss_fn(outputs, train_y)
+            outputs = self.architecture(images)
+            loss = self.loss_fn(outputs, labels)
             loss.backward()
             self.optimizer.step()
 

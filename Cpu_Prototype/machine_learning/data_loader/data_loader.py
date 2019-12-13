@@ -7,6 +7,8 @@ import cv2
 import json
 import os
 import sys
+from os import listdir
+from os.path import isfile, join, basename
 
 sys.path.append("..")
 import util
@@ -32,13 +34,13 @@ class PartitionedDataset(torch.utils.data.Dataset):
     def __add__(self, other):
         return self.dataset.append(other)
 
-def get_train_dataset():
-    transforms = [
-        torchvision.transforms.RandomAffine((-15,15), translate=(.2,.2), scale=(.75,1.25)),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Lambda(lambda x: preprocess_data(x))
-    ]
+transforms = [
+    torchvision.transforms.RandomAffine((-5,5), translate=(.1,.1), scale=(.5,1.)),
+    torchvision.transforms.ToTensor(),
+    torchvision.transforms.Lambda(lambda x: preprocess_data(x, noisy=False))
+]
 
+def get_train_dataset():
     train_dataset = datasets.MNIST(
         root=DATAPATH, 
         train=True, 
@@ -48,12 +50,6 @@ def get_train_dataset():
     return train_dataset
 
 def get_test_dataset():
-    transforms = [
-        torchvision.transforms.RandomAffine((-15,15), translate=(.2,.2)),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Lambda(lambda x: preprocess_data(x))
-    ]
-
     test_dataset = datasets.MNIST(
         root=DATAPATH, 
         train=False, 
@@ -85,7 +81,7 @@ def get_custom_dataset():
         numpy_path = os.path.join(pwd_path, NUMPY_SAVE_DIR, numpy_file)
 
         img_np = np.load(numpy_path)
-        img_tensor = torch.from_numpy(img_np)
+        img_tensor = torch.from_numpy(img_np).float()
         label_tensor = torch.from_numpy(label_np)
 
         custom_dataset.append([img_tensor, label_tensor])
@@ -100,48 +96,16 @@ def fill_set_straight(source_dataset, target_set, target_set_size, index):
 
     return index
 
-def preprocess_data(item):
-    input_np = item.numpy()
-    input_np = input_np * 255
-    input_np = input_np.astype(np.uint8)
-    input_np = input_np.reshape(28,28)
-    (ret, input_np) = cv2.threshold(input_np, 0, 255, cv2.THRESH_OTSU)
-    input_np = input_np.astype(np.float32)
-    input_np = input_np.reshape(1,28,28)
-    input_tensor = torch.from_numpy(input_np)
-    
-    return input_tensor
-
-def process_and_fill_set_straight(source_dataset, target_set, target_set_size, index):
-    for j in range(target_set_size):
-        item = source_dataset.__getitem__(index)
-        index = index + 1
-        input_np = item[0].numpy()
-        input_np = input_np[0] * 255
-        input_np = input_np.astype(np.uint8)
-        input_np = input_np.reshape(28,28)
-        (ret, input_np) = cv2.threshold(input_np, 0, 255, cv2.THRESH_OTSU)
-        input_np = input_np.astype(np.float32)
-        input_np = input_np.reshape(1,28,28)
-        input_tensor = torch.from_numpy(input_np)
-        target_set.__add__((input_tensor, item[1]))
-    
-    # util.imshow(item_tensor, item[1])
-
-    # print(type(item))
-    # print(type((input_tensor, item[1])))
-
-    # print(item_np)
-
-    # img_np = item[0] * 255
-    # img_np = img_np.astype(np.uint8)
-    # print(img_np.dtype)
-    # (ret, img_np) = cv2.threshold(img_np, 0, 255, cv2.THRESH_OTSU)
-    # print(img_np)
-
-    # util.imshow(img_np, item[1])
-
-    return index
+def preprocess_data(x, noisy=False, blackwhite_factor=.15, thresh_factor=.3):
+    # Threshold
+    minn = np.min(x.detach().numpy())
+    maxx = np.max(x.detach().numpy())
+    rangee = maxx - minn
+    black_thresh = minn + blackwhite_factor * rangee # every below this is "black"
+    white_thresh = maxx - blackwhite_factor * rangee # every below this is "white"
+    threshold_factor = np.random.rand() if noisy else thresh_factor
+    threshold = threshold_factor * (white_thresh-black_thresh) + black_thresh
+    return (x > threshold).float()
 
 def get_train_dataloader():
     train_dataset = get_train_dataset()
@@ -160,27 +124,11 @@ def get_train_dataloader():
 
     return train_loader, validation_loader
 
-def get_train_dataloader_processed():
-    train_dataset = get_train_dataset()
-
-    train_set = PartitionedDataset()
-    validation_set = PartitionedDataset()
-
-    train_set_size = len(train_dataset) - VALIDATION_SIZE
-
-    index = 0
-    # index = process_and_fill_set_straight(train_dataset, validation_set, 1, index)
-    index = fill_set_straight(train_dataset, validation_set, VALIDATION_SIZE, index)
-    index = fill_set_straight(train_dataset, train_set, train_set_size, index)
-
-    train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH_SIZE, shuffle=True)
-    validation_loader = torch.utils.data.DataLoader(dataset=validation_set, batch_size=VALIDATION_SIZE, shuffle=False)
-
-    return train_loader, validation_loader
-
 def get_custom_loader():
     custom_dataset = get_custom_dataset()
     total_size = len(custom_dataset)
+
+    # print(custom_dataset[0])
 
     custom_loader = torch.utils.data.DataLoader(dataset=custom_dataset, batch_size=total_size, shuffle=False)
 
@@ -190,20 +138,9 @@ def get_test_dataloader():
     test_dataset = get_test_dataset()
     total_size = len(test_dataset)
 
+    # print(test_dataset[0])
+
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=total_size, shuffle=False)
-    
-    return test_loader
-
-def get_test_dataloader_processed():
-    test_dataset = get_test_dataset()
-    total_size = len(test_dataset)
-
-    target_set = PartitionedDataset()
-    
-    index = 0
-    index = process_and_fill_set_straight(test_dataset, target_set, total_size, index)
-
-    test_loader = torch.utils.data.DataLoader(dataset=target_set, batch_size=total_size, shuffle=False)
     
     return test_loader
 
