@@ -7,10 +7,14 @@ import torchvision
 from os import listdir
 from os.path import isfile, join, basename
 
-transforms = [
+mnist_transforms = [
     torchvision.transforms.RandomAffine((-5,5), translate=(.1,.1), scale=(.5,1.)),
     torchvision.transforms.ToTensor(),
     torchvision.transforms.Lambda(lambda x: preprocess_data(x, noisy=False))
+]
+
+real_transforms = [
+    torchvision.transforms.ToTensor()
 ]
 
 def preprocess_data(x, noisy=False, blackwhite_factor=.15, thresh_factor=.3):
@@ -72,7 +76,7 @@ def preprocess_camera_image(jpg_path, black_threshold=.20, crop_margin=0.85):
 def get_real_image_loader():
     real_images_loader = torch.utils.data.DataLoader(
         RealImagesDataset("./data/real_images/",
-                            transform=torchvision.transforms.Compose(transforms)),
+                            transform=torchvision.transforms.Compose(real_transforms)),
                             batch_size=50, shuffle=True)
 
     return real_images_loader

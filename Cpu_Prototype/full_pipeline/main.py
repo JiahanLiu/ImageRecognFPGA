@@ -1,6 +1,7 @@
 from data_loader import data_loader
 
 import cv2
+import matplotlib.pyplot as plt
 from PIL import Image
 from skimage.measure import block_reduce
 import torch
@@ -38,11 +39,12 @@ def try_model(model_path):
 
     print("Accuracy: " + str(acc))
 
-def preprocess_camera_image(jpg_path, black_threshold=.20, crop_margin=0.85):
+def preprocess_camera_image(jpg_path, black_threshold=.20, crop_margin=0.75):
     # Open with PIL
     with Image.open(jpg_path) as img_PIL:
         # Crop (to square, remove timestamp)
         width, height = img_PIL.size 
+        # print(str(width) + " " + str(height))
         target_size = crop_margin * height
         leftright_margin = (width - target_size) / 2
         topbottom_margin = (height - target_size) / 2
@@ -60,7 +62,9 @@ def preprocess_camera_image(jpg_path, black_threshold=.20, crop_margin=0.85):
     thresh = black_threshold * rng + minn
     img_thresh = img_gray < thresh
     # Downsample (using max)
-    img_small = block_reduce(img_thresh, block_size=(28, 28), func=np.max)[:28,:28]
+    img_small = block_reduce(img_thresh, block_size=(11, 11), func=np.max)[:28,:28]
+    # imgplot = plt.imshow(img_small)
+    # plt.show()
     return img_small
 
 def fun(model_path):
@@ -84,7 +88,7 @@ def fun(model_path):
     
     img_path = "opencv_frame.jpg"
     while rval:
-        # cv2.imshow("preview", frame)
+        cv2.imshow("preview", frame)
         rval, frame = vc.read()
         key = cv2.waitKey(20)
         if key == 27: # exit on ESC
@@ -93,16 +97,14 @@ def fun(model_path):
 
         time.sleep(1)
         image = preprocess_camera_image(img_path)
-        print(image.shape)
-        # image = image.view(1, 784)
-        # with torch.no_grad():
-        #     log_probs = model(image)
-        # probs_tnsr = torch.exp(log_probs)
-        # probabilities = list(probs_tnsr.numpy()[0])
-        # pred_label = probabilities.index(max(probabilities))
-        # print(pred_label)
-        # prediction = np.argmax(probabilities)
+        image_tnsr = torch.from_numpy(image).float().view(1,784)
+        with torch.no_grad():
+            log_probs = model(image_tnsr)
+        probs_tnsr = torch.exp(log_probs)
+        probabilities = list(probs_tnsr.numpy()[0])
+        pred_label = probabilities.index(max(probabilities))
 
+        print(pred_label)
     
 
     cv2.destroyWindow("preview")
@@ -111,8 +113,8 @@ def fun(model_path):
     print("Done")
 
 def main():
-    # fun(model_path_real_data)
-    try_model(model_path_real_data)
+    fun(model_path_real_data)
+    # try_model(model_path_real_data)
 
 if __name__ == "__main__":
     main()
