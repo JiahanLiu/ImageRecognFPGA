@@ -9,7 +9,7 @@ import numpy as np
 import time
 
 model_path_mnist_only = "./model/model.pt"
-model_path_real_data = "./model/nn_200_200_try2.pt"
+model_path_real_data = "./model/model_real_data.pt"
 
 def test(model, test_loader):
     model.eval()
@@ -111,8 +111,8 @@ def fun(model_path):
     print("Done")
 
 def main():
-    fun(model_path_real_data)
-    # try_model(model_path_real_data)
+    # fun(model_path_real_data)
+    try_model(model_path_real_data)
 
 if __name__ == "__main__":
     main()
