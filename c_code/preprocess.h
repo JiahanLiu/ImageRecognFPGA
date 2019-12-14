@@ -6,7 +6,7 @@
 
 #define PREPROC_OUTPUT_BUF_SZ   784 // 28*28
 #define CAMERA_IMAGE_WIDTH      1280
-#define CAMERA_IMAGE_HEIGHT     720
+#define CAMERA_IMAGE_HEIGHT     960
 
 
 /*

@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "preprocess.h"
+#include "nn.h"
 
 
 
@@ -25,6 +26,15 @@ int main(void) {
         fprintf(fp, "%.2f", output_buf[i]);
     }
     fclose(fp);
+
+    // Run NN on preprocessed image
+    matrix_t inpt_mat = {
+        .num_rows = 784,
+        .num_cols = 1,
+        .data = output_buf
+    };
+    int answr = evaluate_neural_net(inpt_mat);
+    printf("Answer: %d\n", answr);
 
 }
 
