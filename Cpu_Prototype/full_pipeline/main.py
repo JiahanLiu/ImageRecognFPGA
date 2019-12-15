@@ -8,18 +8,15 @@ import torch
 import torch.nn as nn
 
 import numpy as np
+import pickle
 import time
 
 model_path_mnist_only = "./model/model.pt"
 model_path_real_data = "./model/model_real_data.pt"
 
-hidden_layer_weights_file = "./model/hidden_layer_weights.pt"
-hidden_layer_biases_file = "./model/hidden_layer_biases.pt"
-num_hidden_layers_file = "./model/num_hidden_layers.pt"
-output_layer_weight_file = "./model/output_layer_weight_file.pt"
-output_layer_bias = "./model/output_layer_bias.pt"
+numpy_eval_save_file = "model/numpy_eval.pkl"
 
-# Hidden layers' weights/biases
+# # Hidden layers' weights/biases
 hidden_layer_weights = []
 hidden_layer_biases = []
 num_hidden_layers = 0 # count of hidden layers
@@ -29,11 +26,6 @@ output_layer_bias = None
 
 def evaluate_numpy_nn(x):
     global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
-    # print(len(hidden_layer_weights))
-    # print(len(hidden_layer_biases))
-    # print(num_hidden_layers)
-    # print(output_layer_weight.shape)
-    # print(output_layer_bias.shape)
 
     # Hidden layers
     for h in range(num_hidden_layers):
@@ -45,8 +37,18 @@ def evaluate_numpy_nn(x):
     e_x = np.exp(x - np.max(x))
     return np.log(e_x / e_x.sum())
 
-def parse_pytorch_model(mdl):
+def load_numpy_model():
     global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
+    with open(numpy_eval_save_file, 'rb') as f:
+        hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias = pickle.load(f)
+
+def parse_pytorch_model(mdl):
+    hidden_layer_weights = []
+    hidden_layer_biases = []
+    num_hidden_layers = 0
+    output_layer_weight = None
+    output_layer_bias = None
+
     num_modules = len(mdl)
     i = 0
     while i < num_modules-1:
@@ -79,10 +81,8 @@ def parse_pytorch_model(mdl):
             output_layer_weight = weight
             output_layer_bias = bias
 
-def test_numpy(model_path):
-    model = torch.load(model_path)
-    parse_pytorch_model(model)
-
+    with open(numpy_eval_save_file, 'bw') as f:
+        pickle.dump([hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias], f)
 
 def test(model, test_loader):
     model.eval()
@@ -178,6 +178,7 @@ def camera(model_path):
 def camera_numpy(model_path):
     model = torch.load(model_path)
     parse_pytorch_model(model)
+    load_numpy_model()
 
     cv2.namedWindow("preview")
     vc = cv2.VideoCapture(1)
@@ -196,7 +197,7 @@ def camera_numpy(model_path):
             break
         cv2.imwrite(img_path, frame)
 
-        # time.sleep(1)
+        time.sleep(1)
 
         image = preprocess_camera_image(img_path)
         image = image.reshape(784)
