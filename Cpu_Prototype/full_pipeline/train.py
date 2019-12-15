@@ -7,7 +7,9 @@ import torch.nn as nn
 import torch.optim as optim
 
 import csv   
+import getopt
 import random
+import sys
 
 DEVICE = torch.device("cpu")
 if torch.cuda.is_available():
@@ -25,15 +27,17 @@ def test(model, test_loader, device):
             image = images[i].view(1, 784)
             with torch.no_grad():
                 log_probs = model(image)
-            probs_tnsr = torch.exp(log_probs)
+            probs_tnsr = torch.exp(log_probs).cpu()
             probabilities = list(probs_tnsr.numpy()[0])
             pred_label = probabilities.index(max(probabilities))
-            true_label = labels.numpy()[i]
+            true_label = labels.cpu().numpy()[i]
             if(true_label == pred_label):
                 correct_count += 1
             all_count += 1
     acc = 100 * correct_count / all_count # model accuracy
     return acc, correct_count, all_count
+
+    return acc
 
 def train(model, optimizer, criterion, train_loader, device):
     model.train()
@@ -102,8 +106,14 @@ def try_architecture(num_hidden_layers, hidden_layer_width):
     return acc
 
 def main():
-    for num_hidden_layers in range(2, 6, 1):
-        for hidden_layer_width in range(30, 100, 3):
+    start_search = 0
+    options, remainder = getopt.getopt(sys.argv[1:], 'l:')
+    for opt, arg in options:
+        if opt in ('-l'):
+            start_search = int(arg)
+    
+    for num_hidden_layers in range(start_search, start_search+2, 1):
+        for hidden_layer_width in range(30, 100, 5):
             acc = try_architecture(num_hidden_layers, hidden_layer_width)
             row = [acc, num_hidden_layers, hidden_layer_width]
             with open('results.csv', 'a') as f:
