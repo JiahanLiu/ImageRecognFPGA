@@ -19,6 +19,7 @@ class Model:
         self.validation_loader = validation_loader
         self.test_loader = test_loader
 
+        self.learning_rate = learning_rate
         self.architecture = network_architecture().to(device=self.DEVICE)
         self.loss_fn = nn.NLLLoss()
         self.optimizer = optim.Adam(self.architecture.parameters(), lr=learning_rate)
@@ -50,6 +51,12 @@ class Model:
 
     def get_architecture(self):
         return self.architecture
+
+    def set_architecture(self, architecture):
+        self.architecture = architecture.to(device=self.DEVICE)
+
+        self.loss_fn = nn.NLLLoss()
+        self.optimizer = optim.Adam(self.architecture.parameters(), lr=self.learning_rate)
         
     def set_device(self, device):
         if torch.cuda.is_available():

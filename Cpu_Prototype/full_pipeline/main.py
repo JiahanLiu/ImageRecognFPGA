@@ -112,8 +112,8 @@ def fun(model_path):
     print("Done")
 
 def main():
-    fun(model_path_real_data)
-    # try_model(model_path_real_data)
+    # fun(model_path_real_data)
+    try_model(model_path_real_data)
 
 if __name__ == "__main__":
     main()

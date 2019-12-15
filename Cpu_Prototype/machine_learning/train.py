@@ -17,7 +17,7 @@ def train(network_architecture, get_train_loader, get_test_loader, end_function,
     net = model.Model(network_architecture, train_loader, validation_loader, test_loader, learning_rate)
     if(None != load_model_function):
         print("Doing transfer learning")
-        load_model_function(net.get_architecture(), net.get_device())
+        net.set_architecture(load_model_function(net.get_device()))
 
     end_condition = False
     epoch_n = 0
