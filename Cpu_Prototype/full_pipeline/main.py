@@ -12,6 +12,20 @@ import time
 model_path_mnist_only = "./model/model.pt"
 model_path_real_data = "./model/FC2.sm"
 
+def accuracy(architecture, data_loader):
+    correct = 0
+    architecture.eval()
+    with torch.no_grad():
+        for test_x, test_y in data_loader:
+            test_x = test_x
+            test_y = test_y
+            output = architecture(test_x)
+            pred = output.argmax(dim=1, keepdim=True)
+            correct += pred.eq(test_y.view_as(pred)).sum().item()
+        acc = (100 * correct) / len(data_loader.dataset)
+
+    return acc
+
 def test(model, test_loader):
     model.eval()
     correct_count, all_count = 0, 0
@@ -35,7 +49,7 @@ def try_model(model_path):
 
     real_test_loader = data_loader.get_real_image_loader()
     
-    acc, correct_count, all_count = test(model, real_test_loader)
+    acc = accuracy(model, real_test_loader)
 
     print("Accuracy: " + str(acc))
 
