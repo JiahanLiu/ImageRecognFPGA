@@ -5,7 +5,7 @@ import torch.optim as optim
 
 class NetFC_2(nn.Module):
 
-    def __init__(self):
+    def __init__(self, width):
         super(NetFC_2, self).__init__()
 
         self.z1 = nn.Linear(784, 100)
