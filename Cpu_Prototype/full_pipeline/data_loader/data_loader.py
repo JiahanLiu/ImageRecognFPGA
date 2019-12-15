@@ -7,6 +7,9 @@ import torchvision
 from os import listdir
 from os.path import isfile, join, basename
 
+batch_size_train = 64
+batch_size_test = 1000
+
 mnist_transforms = [
     torchvision.transforms.RandomAffine((-5,5), translate=(.1,.1), scale=(.5,1.)),
     torchvision.transforms.ToTensor(),
@@ -77,6 +80,38 @@ def get_real_image_loader():
     real_images_loader = torch.utils.data.DataLoader(
         RealImagesDataset("./data/real_images/",
                             transform=torchvision.transforms.Compose(real_transforms)),
-                            batch_size=50, shuffle=True)
+                            batch_size=30, shuffle=True)
 
     return real_images_loader
+
+def get_real_image_train_loader():
+    real_images_loader = torch.utils.data.DataLoader(
+        RealImagesDataset("./data/first_split/",
+                            transform=torchvision.transforms.Compose(real_transforms)),
+                            batch_size=30, shuffle=True)
+
+    return real_images_loader
+
+def get_real_image_test_loader():
+    real_images_loader = torch.utils.data.DataLoader(
+        RealImagesDataset("./data/second_split/",
+                            transform=torchvision.transforms.Compose(real_transforms)),
+                            batch_size=30, shuffle=True)
+
+    return real_images_loader
+
+def get_train_loader():
+    train_loader = torch.utils.data.DataLoader(
+                        torchvision.datasets.MNIST('./data', train=True, download=True,
+                            transform=torchvision.transforms.Compose(mnist_transforms)),
+                        batch_size=batch_size_train, shuffle=True)
+
+    return train_loader
+
+def get_test_loader():
+    test_loader = torch.utils.data.DataLoader(
+                        torchvision.datasets.MNIST('./data', train=False, download=True,
+                            transform=torchvision.transforms.Compose(mnist_transforms)),
+                        batch_size=batch_size_test, shuffle=True)
+
+    return test_loader

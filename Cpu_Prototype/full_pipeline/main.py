@@ -105,7 +105,6 @@ def fun(model_path):
         pred_label = probabilities.index(max(probabilities))
 
         print(pred_label)
-    
 
     cv2.destroyWindow("preview")
     vc.release()
