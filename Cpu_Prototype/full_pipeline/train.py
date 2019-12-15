@@ -1,10 +1,12 @@
 from data_loader import data_loader
+import evaluate
 from model import model
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
+import csv   
 import random
 
 DEVICE = torch.device("cpu")
@@ -64,8 +66,8 @@ def train_model(model, optimizer, criterion, train_loader, test_loader, model_pa
 
     torch.save(model, model_path)
 
-def train_base(base_model_path, num_epochs):
-    net = model.build_simple_neural_net(num_hidden_layers=3, hidden_layer_width=100, input_size=28*28, output_size=10, device=DEVICE)
+def train_base(base_model_path, num_epochs, num_hidden_layers, hidden_layer_width):
+    net = model.build_simple_neural_net(num_hidden_layers, hidden_layer_width, input_size=28*28, output_size=10, device=DEVICE)
     model.parameter_init(net)
     criterion = nn.NLLLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.001)
@@ -89,13 +91,24 @@ def train_transfer(base_model_path, new_model_path, num_epochs):
 
     return net
 
-def main():
+def try_architecture(num_hidden_layers, hidden_layer_width):
     base_model_path = "./data/model.pt"
     new_model_path = "./data/model_real_data.pt"
 
-    train_base(base_model_path, 50)
-    train_transfer(base_model_path, new_model_path, 10)
+    train_base(base_model_path, 50, num_hidden_layers, hidden_layer_width)
+    net = train_transfer(base_model_path, new_model_path, 10)
+    acc = evaluate.try_model(net, DEVICE)
 
+    return acc
+
+def main():
+    for num_hidden_layers in range(2, 6, 1):
+        for hidden_layer_width in range(30, 100, 3):
+            acc = try_architecture(num_hidden_layers, hidden_layer_width)
+            row = [acc, num_hidden_layers, hidden_layer_width]
+            with open('results.csv', 'a') as f:
+                writer = csv.writer(f)
+                writer.writerow(row)
 
 if __name__ == "__main__":
     main()

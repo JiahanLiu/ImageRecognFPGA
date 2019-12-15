@@ -22,7 +22,16 @@ def test(model, test_loader, device):
     acc = 100 * correct_count / all_count # model accuracy
     return acc, correct_count, all_count
 
-def try_model(model_path, device):
+def try_model(net, device):
+    real_test_loader = data_loader.get_real_image_loader()
+    
+    acc, correct_count, all_count = test(net, real_test_loader, device)
+
+    print("Accuracy: " + str(acc))
+
+    return acc
+
+def try_model_path(model_path, device):
     model = torch.load(model_path)
 
     real_test_loader = data_loader.get_real_image_loader()
@@ -30,3 +39,5 @@ def try_model(model_path, device):
     acc, correct_count, all_count = test(model, real_test_loader, device)
 
     print("Accuracy: " + str(acc))
+
+    return acc
