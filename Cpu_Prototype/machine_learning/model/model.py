@@ -28,6 +28,8 @@ class Model:
 
     def train(self):
         for images, labels in self.train_loader:
+            images.to(device=self.DEVICE)
+            lables.to(device=self.DEVICE)
             images = images.view(images.shape[0], -1) # flatten image into 1D vector
             self.optimizer.zero_grad()
             outputs = self.architecture(images)
