@@ -86,10 +86,10 @@ def train_base(base_model_path, num_epochs, num_hidden_layers, hidden_layer_widt
 def train_transfer(base_model_path, new_model_path, num_epochs):
     net = torch.load(base_model_path)
     criterion = nn.NLLLoss()
-    optimizer = optim.Adam(net.parameters(), lr=0.001)
+    optimizer = optim.Adam(net.parameters(), lr=0.0001)
     
-    train_loader = data_loader.get_real_image_train_loader()
-    test_loader = data_loader.get_real_image_test_loader()
+    train_loader = data_loader.get_real_image_loader()
+    test_loader = data_loader.get_real_image_loader()
 
     train_model(net, optimizer, criterion, train_loader, test_loader, new_model_path, num_epochs, DEVICE)
 

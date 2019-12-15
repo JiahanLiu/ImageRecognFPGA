@@ -84,22 +84,6 @@ def get_real_image_loader():
 
     return real_images_loader
 
-def get_real_image_train_loader():
-    real_images_loader = torch.utils.data.DataLoader(
-        RealImagesDataset("./data/first_split/",
-                            transform=torchvision.transforms.Compose(real_transforms)),
-                            batch_size=30, shuffle=True)
-
-    return real_images_loader
-
-def get_real_image_test_loader():
-    real_images_loader = torch.utils.data.DataLoader(
-        RealImagesDataset("./data/second_split/",
-                            transform=torchvision.transforms.Compose(real_transforms)),
-                            batch_size=30, shuffle=True)
-
-    return real_images_loader
-
 def get_train_loader():
     train_loader = torch.utils.data.DataLoader(
                         torchvision.datasets.MNIST('./data', train=True, download=True,
