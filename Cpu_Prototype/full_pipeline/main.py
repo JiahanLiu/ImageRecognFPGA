@@ -28,6 +28,13 @@ output_layer_weight = None
 output_layer_bias = None
 
 def evaluate_numpy_nn(x):
+    global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
+    # print(len(hidden_layer_weights))
+    # print(len(hidden_layer_biases))
+    # print(num_hidden_layers)
+    # print(output_layer_weight.shape)
+    # print(output_layer_bias.shape)
+
     # Hidden layers
     for h in range(num_hidden_layers):
         x = np.matmul(hidden_layer_weights[h], x) + hidden_layer_biases[h] # H: W*x + b
@@ -46,31 +53,31 @@ def parse_pytorch_model(mdl):
         module = mdl[i]; i += 1
         next_module = mdl[i]; i += 1
 
-    # Expect a linear module first
-    assert isinstance(module, nn.modules.linear.Linear), "Expected Linear module"
+        # Expect a linear module first
+        assert isinstance(module, nn.modules.linear.Linear), "Expected Linear module"
 
-    # Make sure following module is ReLU or LogSoftmax
-    assert isinstance(next_module, nn.modules.activation.LogSoftmax) or \
-            isinstance(next_module, nn.modules.activation.ReLU), "Expected ReLU or LogSoftmax module"
+        # Make sure following module is ReLU or LogSoftmax
+        assert isinstance(next_module, nn.modules.activation.LogSoftmax) or \
+                isinstance(next_module, nn.modules.activation.ReLU), "Expected ReLU or LogSoftmax module"
 
-    # Make sure LogSoftmax is only at the end
-    if isinstance(next_module, nn.modules.activation.LogSoftmax):
-        assert i >= num_modules-1
+        # Make sure LogSoftmax is only at the end
+        if isinstance(next_module, nn.modules.activation.LogSoftmax):
+            assert i >= num_modules-1
 
-    # Make sure last model is LogSoftmax
-    if i == num_modules-1:
-        assert isinstance(next_module, nn.modules.activation.LogSoftmax), "LogSoftmax should be last module."
+        # Make sure last model is LogSoftmax
+        if i == num_modules-1:
+            assert isinstance(next_module, nn.modules.activation.LogSoftmax), "LogSoftmax should be last module."
 
-    # Parse Linear module
-    weight = module.weight.detach().numpy()
-    bias = module.bias.detach().numpy()
-    if isinstance(next_module, nn.modules.activation.ReLU): # is hidden layer
-        hidden_layer_weights.append(weight)
-        hidden_layer_biases.append(bias)
-        num_hidden_layers += 1
-    else: # is output layer
-        output_layer_weight = weight
-        output_layer_bias = bias
+        # Parse Linear module
+        weight = module.weight.detach().numpy()
+        bias = module.bias.detach().numpy()
+        if isinstance(next_module, nn.modules.activation.ReLU): # is hidden layer
+            hidden_layer_weights.append(weight)
+            hidden_layer_biases.append(bias)
+            num_hidden_layers += 1
+        else: # is output layer
+            output_layer_weight = weight
+            output_layer_bias = bias
 
 def test_numpy(model_path):
     model = torch.load(model_path)
@@ -99,7 +106,6 @@ def try_model(model_path):
     model = torch.load(model_path)
 
     real_test_loader = data_loader.get_real_image_loader()
-    
     acc = test(model, real_test_loader)
 
     print("Accuracy: " + str(acc))
@@ -169,7 +175,7 @@ def camera(model_path):
     
     print("Done")
 
-def camera_npy(model_path):
+def camera_numpy(model_path):
     model = torch.load(model_path)
     parse_pytorch_model(model)
 
@@ -190,11 +196,14 @@ def camera_npy(model_path):
             break
         cv2.imwrite(img_path, frame)
 
-        time.sleep(1)
+        # time.sleep(1)
+
         image = preprocess_camera_image(img_path)
+        image = image.reshape(784)
         numpy_output = evaluate_numpy_nn(image)
+        prediction = np.argmax(numpy_output)
         
-        print(numpy_output)
+        print(prediction)
 
     cv2.destroyWindow("preview")
     vc.release()
@@ -203,8 +212,9 @@ def camera_npy(model_path):
 
 def main():
     # camera(model_path_real_data)
+    camera_numpy(model_path_real_data)
+
     # try_model(model_path_real_data)
-    test_numpy(model_path_real_data)
 
 if __name__ == "__main__":
     main()
