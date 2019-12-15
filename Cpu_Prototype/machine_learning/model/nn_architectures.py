@@ -3,20 +3,24 @@ import torch.nn as nn
 import torch.nn.functional as F 
 import torch.optim as optim
 
-class NetFC_2(nn.Module):
+class NetFC_X(nn.Module):
 
-    def __init__(self, width):
-        super(NetFC_2, self).__init__()
+    def __init__(self, width, depth):
+        super(NetFC_X, self).__init__()
 
-        self.z1 = nn.Linear(784, 100)
-        self.z2 = nn.Linear(100, 100)
-        self.z3_output = nn.Linear(100, 10)
+        self.hidden_layers = []
+        self.depth = depth
+        self.z1 = nn.Linear(784, width)
+        for i in range(depth-1):
+            self.hidden_layers.append(nn.Linear(width, width))
+        self.zN_output = nn.Linear(width, 10)
 
     def forward(self, x):
         x = x.reshape(-1, 784)
         x = F.relu(self.z1(x))
-        x = F.relu(self.z2(x))
-        x = self.z3_output(x)
+        for i in range(self.depth - 1):
+            x = F.relu(self.hidden_layers[i](x))
+        x = self.zN_output(x)
         x = F.log_softmax(x, dim=1)
 
         return x
@@ -28,9 +32,9 @@ class NetFC_5(nn.Module):
 
         self.z1 = nn.Linear(784, 100)
         self.z2 = nn.Linear(100, 100)
-        self.z3 = nn.Linear(100, 50)
-        self.z4 = nn.Linear(50, 50)
-        self.z5_output = nn.Linear(50, 10)
+        self.z3 = nn.Linear(100, 100)
+        self.z4 = nn.Linear(100, 100)
+        self.z5_output = nn.Linear(100, 10)
 
     def forward(self, x):
         x = x.reshape(-1, 784)

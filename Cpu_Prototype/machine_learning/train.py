@@ -11,10 +11,10 @@ def print_results(epoch_n, loss, validation_accuracy, acc):
     if DEBUG:
         print("Epoch: " + epoch_n + " | Loss: " + loss + " | ValAcc: " + validation_accuracy + " | Acc: " + acc)
 
-def train(network_architecture, get_train_loader, get_test_loader, end_function, learning_rate, save_model_function, load_model_function):
+def train(network_architecture, get_train_loader, get_test_loader, end_function, learning_rate, save_model_function, load_model_function, width, depth):
     train_loader, validation_loader = get_train_loader()
     test_loader = get_test_loader()
-    net = model.Model(network_architecture, train_loader, validation_loader, test_loader, learning_rate)
+    net = model.Model(network_architecture, train_loader, validation_loader, test_loader, learning_rate, width, depth)
     if(None != load_model_function):
         print("Doing transfer learning")
         net.set_architecture(load_model_function(net.get_device()))
@@ -42,6 +42,8 @@ def train(network_architecture, get_train_loader, get_test_loader, end_function,
         print_results(epoch_n=str(epoch_n), loss=str(loss.item()), validation_accuracy=str(validation_accuracy), acc=str(acc))
 
         epoch_n = epoch_n + 1
+    
+    return acc
 
 def test_saved_model(network_architecture, get_train_loader, get_test_loader, learning_rate, load_model_function):
     train_loader, validation_loader = get_train_loader()
@@ -114,11 +116,15 @@ def main():
     save_architecture_to_file = util.save_architecture_to_file_closure(save_path)
     load_architecture_from_file = util.load_architecture_from_file_closure(save_path)
 
-    train(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file, None)
-    train(nn_architectures.NetFC_2, data_loader.get_real_image_train_loader, data_loader.get_real_image_test_loader, stop_at_N_epochs, TRANSFER_LEARNING_RATE, save_architecture_to_file, load_architecture_from_file)
+    width = 100
+    depth = 2
+    train(nn_architectures.NetFC_X, data_loader.get_train_dataloader, data_loader.get_test_dataloader, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file, None, width, depth)
+    acc = train(nn_architectures.NetFC_X, data_loader.get_real_image_train_loader, data_loader.get_real_image_test_loader, stop_at_N_epochs, TRANSFER_LEARNING_RATE, save_architecture_to_file, load_architecture_from_file, width, depth)
+    print("Final Accuracy" + str(acc))
 
-    # test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
-    # test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_custom_loader, LEARNING_RATE, load_architecture_from_file)
+
+    # test_saved_model(nn_architectures.NetFC_X, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
+    # test_saved_model(nn_architectures.NetFC_X, data_loader.get_train_dataloader, data_loader.get_custom_loader, LEARNING_RATE, load_architecture_from_file)
 
     temp_index = 1
     # test_single_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file, target_index=temp_index)

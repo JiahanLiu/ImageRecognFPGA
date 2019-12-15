@@ -8,7 +8,7 @@ import torch.optim as optim
 import random
 
 class Model:
-    def __init__(self, network_architecture, train_loader, validation_loader, test_loader, learning_rate):
+    def __init__(self, network_architecture, train_loader, validation_loader, test_loader, learning_rate, width, depth):
         self.DEVICE = torch.device("cpu")
         if torch.cuda.is_available():
             self.DEVICE = torch.device("cuda")
@@ -20,7 +20,7 @@ class Model:
         self.test_loader = test_loader
 
         self.learning_rate = learning_rate
-        self.architecture = network_architecture().to(device=self.DEVICE)
+        self.architecture = network_architecture(width, depth).to(device=self.DEVICE)
         self.loss_fn = nn.NLLLoss()
         self.optimizer = optim.Adam(self.architecture.parameters(), lr=learning_rate)
 
