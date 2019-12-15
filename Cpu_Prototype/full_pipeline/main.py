@@ -5,26 +5,77 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from skimage.measure import block_reduce
 import torch
+import torch.nn as nn
 
 import numpy as np
 import time
 
 model_path_mnist_only = "./model/model.pt"
-model_path_real_data = "./model/FC2.sm"
+model_path_real_data = "./model/model_real_data.pt"
 
-def accuracy(architecture, data_loader):
-    correct = 0
-    architecture.eval()
-    with torch.no_grad():
-        for test_x, test_y in data_loader:
-            test_x = test_x
-            test_y = test_y
-            output = architecture(test_x)
-            pred = output.argmax(dim=1, keepdim=True)
-            correct += pred.eq(test_y.view_as(pred)).sum().item()
-        acc = (100 * correct) / len(data_loader.dataset)
+hidden_layer_weights_file = "./model/hidden_layer_weights.pt"
+hidden_layer_biases_file = "./model/hidden_layer_biases.pt"
+num_hidden_layers_file = "./model/num_hidden_layers.pt"
+output_layer_weight_file = "./model/output_layer_weight_file.pt"
+output_layer_bias = "./model/output_layer_bias.pt"
 
-    return acc
+# Hidden layers' weights/biases
+hidden_layer_weights = []
+hidden_layer_biases = []
+num_hidden_layers = 0 # count of hidden layers
+# Output layer's weight/bias
+output_layer_weight = None
+output_layer_bias = None
+
+def evaluate_numpy_nn(x):
+    # Hidden layers
+    for h in range(num_hidden_layers):
+        x = np.matmul(hidden_layer_weights[h], x) + hidden_layer_biases[h] # H: W*x + b
+        x = np.maximum(x, 0) # ReLU
+    # Output layer
+    x = np.matmul(output_layer_weight, x) + output_layer_bias # Output: W*x + b
+    # Log softmax
+    e_x = np.exp(x - np.max(x))
+    return np.log(e_x / e_x.sum())
+
+def parse_pytorch_model(mdl):
+    global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
+    num_modules = len(mdl)
+    i = 0
+    while i < num_modules-1:
+        module = mdl[i]; i += 1
+        next_module = mdl[i]; i += 1
+
+    # Expect a linear module first
+    assert isinstance(module, nn.modules.linear.Linear), "Expected Linear module"
+
+    # Make sure following module is ReLU or LogSoftmax
+    assert isinstance(next_module, nn.modules.activation.LogSoftmax) or \
+            isinstance(next_module, nn.modules.activation.ReLU), "Expected ReLU or LogSoftmax module"
+
+    # Make sure LogSoftmax is only at the end
+    if isinstance(next_module, nn.modules.activation.LogSoftmax):
+        assert i >= num_modules-1
+
+    # Make sure last model is LogSoftmax
+    if i == num_modules-1:
+        assert isinstance(next_module, nn.modules.activation.LogSoftmax), "LogSoftmax should be last module."
+
+    # Parse Linear module
+    weight = module.weight.detach().numpy()
+    bias = module.bias.detach().numpy()
+    if isinstance(next_module, nn.modules.activation.ReLU): # is hidden layer
+        hidden_layer_weights.append(weight)
+        hidden_layer_biases.append(bias)
+        num_hidden_layers += 1
+    else: # is output layer
+        output_layer_weight = weight
+        output_layer_bias = bias
+
+def test_numpy(model_path):
+    model = torch.load(model_path)
+    parse_pytorch_model(model)
+
 
 def test(model, test_loader):
     model.eval()
@@ -49,7 +100,7 @@ def try_model(model_path):
 
     real_test_loader = data_loader.get_real_image_loader()
     
-    acc = accuracy(model, real_test_loader)
+    acc = test(model, real_test_loader)
 
     print("Accuracy: " + str(acc))
 
@@ -81,7 +132,7 @@ def preprocess_camera_image(jpg_path, black_threshold=.20, crop_margin=0.75):
     # plt.show()
     return img_small
 
-def fun(model_path):
+def camera(model_path):
     model = torch.load(model_path)
 
     cv2.namedWindow("preview")
@@ -89,16 +140,8 @@ def fun(model_path):
 
     if vc.isOpened(): # try to get the first frame
         rval, frame = vc.read()
-
     else:
         rval = False
-
-    # while rval:
-    #     cv2.imshow("preview", frame)
-    #     rval, frame = vc.read()
-    #     key = cv2.waitKey(20)
-    #     if key == 27: # exit on ESC
-    #         break
     
     img_path = "opencv_frame.jpg"
     while rval:
@@ -111,6 +154,7 @@ def fun(model_path):
 
         time.sleep(1)
         image = preprocess_camera_image(img_path)
+
         image_tnsr = torch.from_numpy(image).float().view(1,784)
         with torch.no_grad():
             log_probs = model(image_tnsr)
@@ -125,9 +169,42 @@ def fun(model_path):
     
     print("Done")
 
+def camera_npy(model_path):
+    model = torch.load(model_path)
+    parse_pytorch_model(model)
+
+    cv2.namedWindow("preview")
+    vc = cv2.VideoCapture(1)
+
+    if vc.isOpened(): # try to get the first frame
+        rval, frame = vc.read()
+    else:
+        rval = False
+    
+    img_path = "opencv_frame.jpg"
+    while rval:
+        cv2.imshow("preview", frame)
+        rval, frame = vc.read()
+        key = cv2.waitKey(20)
+        if key == 27: # exit on ESC
+            break
+        cv2.imwrite(img_path, frame)
+
+        time.sleep(1)
+        image = preprocess_camera_image(img_path)
+        numpy_output = evaluate_numpy_nn(image)
+        
+        print(numpy_output)
+
+    cv2.destroyWindow("preview")
+    vc.release()
+    
+    print("Done")
+
 def main():
-    # fun(model_path_real_data)
-    try_model(model_path_real_data)
+    # camera(model_path_real_data)
+    # try_model(model_path_real_data)
+    test_numpy(model_path_real_data)
 
 if __name__ == "__main__":
     main()
