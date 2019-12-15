@@ -38,13 +38,13 @@ def train_model(model, optimizer, criterion, train_loader, test_loader, model_pa
     for epoch in range(1, num_epochs+1):
         print("Epoch %d..." % epoch)
         avg_loss = train(model, optimizer, criterion, train_loader, device)
-        percent_correct_train, num_correct_train, count_train = evaluate.test(model, train_loader, device)
-        percent_correct_test, num_correct_test, count_test = evaluate.test(model, test_loader, device)
+        percent_correct_train = evaluate.test(model, train_loader, device)
+        percent_correct_test = evaluate.test(model, test_loader, device)
         training_results.append(percent_correct_train)
         testing_results.append(percent_correct_test)
-        print("\tTraining Loss: %.4f" % avg_loss)
-        print("\tTraining Error: %.2f%% (%d/%d)" % (percent_correct_train, num_correct_train, count_train))
-        print("\tTesting Error : %.2f%% (%d/%d)" % (percent_correct_test, num_correct_test, count_test))
+        print("\tTraining Loss: %.4f", avg_loss)
+        print("\tTraining Acc: %.2f%%", percent_correct_train)
+        print("\tTesting Acc : %.2f%%", percent_correct_test)
 
     torch.save(model, model_path)
 

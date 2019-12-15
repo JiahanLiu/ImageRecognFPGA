@@ -10,7 +10,7 @@ import numpy as np
 import time
 
 model_path_mnist_only = "./model/model.pt"
-model_path_real_data = "./model/model_real_data.pt"
+model_path_real_data = "./model/FC2.sm"
 
 def test(model, test_loader):
     model.eval()

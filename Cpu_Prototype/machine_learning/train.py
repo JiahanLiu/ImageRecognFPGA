@@ -11,10 +11,13 @@ def print_results(epoch_n, loss, validation_accuracy, acc):
     if DEBUG:
         print("Epoch: " + epoch_n + " | Loss: " + loss + " | ValAcc: " + validation_accuracy + " | Acc: " + acc)
 
-def train(network_architecture, get_train_loader, get_test_loader, end_function, learning_rate, save_model_function):
+def train(network_architecture, get_train_loader, get_test_loader, end_function, learning_rate, save_model_function, load_model_function):
     train_loader, validation_loader = get_train_loader()
     test_loader = get_test_loader()
     net = model.Model(network_architecture, train_loader, validation_loader, test_loader, learning_rate)
+    if(None != load_model_function):
+        print("Doing transfer learning")
+        load_model_function(net.get_architecture(), net.get_device())
 
     end_condition = False
     epoch_n = 0
@@ -96,6 +99,7 @@ def main():
         config = json.load(config_file)
         EPOCH_SATURATION = config['machine_learning']['EPOCH_SATURATION']
         LEARNING_RATE = config['machine_learning']['LEARNING_RATE']
+        TRANSFER_LEARNING_RATE = config['machine_learning']['LEARNING_RATE']
         MAX_EPOCHS = config['machine_learning']['MAX_EPOCHS']
         N_EPOCHS = config['machine_learning']['N_EPOCHS']
 
@@ -110,8 +114,8 @@ def main():
     save_architecture_to_file = util.save_architecture_to_file_closure(save_path)
     load_architecture_from_file = util.load_architecture_from_file_closure(save_path)
 
-    # train(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file)
-    train(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_custom_loader, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file)
+    train(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, stop_at_epoch_saturation, LEARNING_RATE, save_architecture_to_file, None)
+    train(nn_architectures.NetFC_2, data_loader.get_real_image_train_loader, data_loader.get_real_image_test_loader, stop_at_N_epochs, TRANSFER_LEARNING_RATE, save_architecture_to_file, load_architecture_from_file)
 
     # test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_test_dataloader, LEARNING_RATE, load_architecture_from_file)
     # test_saved_model(nn_architectures.NetFC_2, data_loader.get_train_dataloader, data_loader.get_custom_loader, LEARNING_RATE, load_architecture_from_file)
