@@ -113,7 +113,7 @@ def main():
             start_search = int(arg)
     
     for num_hidden_layers in range(start_search, start_search+2, 1):
-        for hidden_layer_width in range(30, 100, 5):
+        for hidden_layer_width in range(30, 100, 10):
             acc = try_architecture(num_hidden_layers, hidden_layer_width)
             row = [acc, num_hidden_layers, hidden_layer_width]
             with open('results.csv', 'a') as f:
