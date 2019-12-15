@@ -10,9 +10,9 @@ import random
 class Model:
     def __init__(self, network_architecture, train_loader, validation_loader, test_loader, learning_rate, width, depth):
         self.DEVICE = torch.device("cpu")
-        if torch.cuda.is_available():
-            self.DEVICE = torch.device("cuda")
-            print("Federated Using Cuda")
+        # if torch.cuda.is_available():
+        #     self.DEVICE = torch.device("cuda")
+        #     print("Federated Using Cuda")
         torch.manual_seed(random.random() * 100)
 
         self.train_loader = train_loader
@@ -27,10 +27,11 @@ class Model:
         nn_architectures.parameter_init(self.architecture)
 
     def train(self):
+        self.architecture.train()
         for images, labels in self.train_loader:
-            images.to(device=self.DEVICE)
             labels.to(device=self.DEVICE)
             images = images.view(images.shape[0], -1) # flatten image into 1D vector
+            images.to(device=self.DEVICE)
             self.optimizer.zero_grad()
             outputs = self.architecture(images)
             loss = self.loss_fn(outputs, labels)

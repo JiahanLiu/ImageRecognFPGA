@@ -21,7 +21,7 @@ def train_single(width, depth):
 
         SAVE_MODEL_DIR = config['results']['SAVE_MODEL_DIR']
         SAVE_MODEL_FILE_FC2 = config['results']['SAVE_MODEL_FILE_FC2']
-        SAVE_MODEL_FILE_FC2 = SAVE_MODEL_FILE_FC2 + "_w_ " + str(width) + "_d_" + str(width) + ".sm"
+        SAVE_MODEL_FILE_FC2 = SAVE_MODEL_FILE_FC2 + "_w_" + str(width) + "_d_" + str(width) + ".sm"
 
     stop_at_epoch_saturation = train.stop_at_epoch_saturation_closure(MAX_EPOCHS, EPOCH_SATURATION)
     stop_at_N_epochs = train.stop_at_N_epochs_closure(N_EPOCHS)
