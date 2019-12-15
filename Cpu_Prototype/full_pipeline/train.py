@@ -17,28 +17,6 @@ if torch.cuda.is_available():
     print("Federated Using Cuda")
 torch.manual_seed(random.random() * 100)
 
-def test(model, test_loader, device):
-    model.eval()
-    correct_count, all_count = 0, 0
-    for images, labels in test_loader:
-        images = images.to(device)
-        labels = labels.to(device)
-        for i in range(len(labels)):
-            image = images[i].view(1, 784)
-            with torch.no_grad():
-                log_probs = model(image)
-            probs_tnsr = torch.exp(log_probs).cpu()
-            probabilities = list(probs_tnsr.numpy()[0])
-            pred_label = probabilities.index(max(probabilities))
-            true_label = labels.cpu().numpy()[i]
-            if(true_label == pred_label):
-                correct_count += 1
-            all_count += 1
-    acc = 100 * correct_count / all_count # model accuracy
-    return acc, correct_count, all_count
-
-    return acc
-
 def train(model, optimizer, criterion, train_loader, device):
     model.train()
     cumulative_loss = 0
@@ -60,8 +38,8 @@ def train_model(model, optimizer, criterion, train_loader, test_loader, model_pa
     for epoch in range(1, num_epochs+1):
         print("Epoch %d..." % epoch)
         avg_loss = train(model, optimizer, criterion, train_loader, device)
-        percent_correct_train, num_correct_train, count_train = test(model, train_loader, device)
-        percent_correct_test, num_correct_test, count_test = test(model, test_loader, device)
+        percent_correct_train, num_correct_train, count_train = evaluate.test(model, train_loader, device)
+        percent_correct_test, num_correct_test, count_test = evaluate.test(model, test_loader, device)
         training_results.append(percent_correct_train)
         testing_results.append(percent_correct_test)
         print("\tTraining Loss: %.4f" % avg_loss)
@@ -99,7 +77,7 @@ def try_architecture(num_hidden_layers, hidden_layer_width):
     base_model_path = "./data/model.pt"
     new_model_path = "./data/model_real_data.pt"
 
-    train_base(base_model_path, 50, num_hidden_layers, hidden_layer_width)
+    train_base(base_model_path, 1, num_hidden_layers, hidden_layer_width)
     net = train_transfer(base_model_path, new_model_path, 10)
     acc = evaluate.try_model(net, DEVICE)
 

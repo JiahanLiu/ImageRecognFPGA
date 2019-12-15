@@ -12,10 +12,10 @@ def test(model, test_loader, device):
             image = images[i].view(1, 784)
             with torch.no_grad():
                 log_probs = model(image)
-            probs_tnsr = torch.exp(log_probs)
+            probs_tnsr = torch.exp(log_probs).cpu()
             probabilities = list(probs_tnsr.numpy()[0])
             pred_label = probabilities.index(max(probabilities))
-            true_label = labels.numpy()[i]
+            true_label = labels.cpu().numpy()[i]
             if(true_label == pred_label):
                 correct_count += 1
             all_count += 1
