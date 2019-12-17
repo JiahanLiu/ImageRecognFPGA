@@ -5,10 +5,17 @@ Run with vsc by:<br/>
 2. vcs -full64 -f master -debug<br/>
 3. ./simv -gui & <br/><br/>
 
+Each files here:<br/>
+1.BRAM.v and bram.data : simple bram for just testing <br/>
+2.BRAM_IF.v: bram interface for NN and BRAM<br/>
+3. mat_mul_first.v,  mat_mul_next.v, NN_core and NN_top : for NN<br/>
+4. tb_nn.v: testing all of these together<br/><br/>
+
 The hierchy of the NN design:<br/>
 mat_mul_first & mat_mul_next -> NN_core -> NN_top <br/>
 1. mat_mul_first: matrix multiplication of matrix size [1 x INPUT_NODE_NUM ] x [ INPUT_NODE_NUM x HIDDEN_NODE_NUM]<br/>
 2.mat_mul_next: matrix multiplication of matrix size [1 x HIDDEN_NODE_NUM ] x [ HIDDEN_NODE_NUM x HIDDEN_NODE_NUM] OR  [1 x HIDDEN_NODE_NUM ] x [ HIDDEN_NODE_NUM x OUTPUT_NODE_NUM] <br/>
+-> mat_mul_first and mat_mul_next is the same thing inside...<br/>
 3. NN_core: doing matrix multiplication for each layers<br/>
 4. NN_top: getting data from BRAM_IF and controlling everything for NN<br/>
 Compared to Lab3, you can think of NN_core.v as sha256_core.v and NN_top.v as sha256.v <br/><br/>
