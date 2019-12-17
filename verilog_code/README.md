@@ -7,7 +7,7 @@ Run with vsc by:<br/>
 
 Each files here:<br/>
 1.BRAM.v and bram.data : simple bram for just testing <br/>
-2.BRAM_IF.v: bram interface for NN and BRAM<br/>
+2.BRAM_IF.v: bram interface for NN and BRAM <br/>
 3. mat_mul_first.v,  mat_mul_next.v, NN_core and NN_top : for NN<br/>
 4. tb_nn.v: testing all of these together<br/><br/>
 
@@ -19,12 +19,14 @@ mat_mul_first & mat_mul_next -> NN_core -> NN_top <br/>
 3. NN_core: doing matrix multiplication for each layers<br/>
 4. NN_top: getting data from BRAM_IF and controlling everything for NN<br/>
 Compared to Lab3, you can think of NN_core.v as sha256_core.v and NN_top.v as sha256.v <br/><br/>
-Also, BRAM_IF is editted for NN<br/><br/>
+
 
 BEFORE GENERATING BITSTREAM, TODO: <br/>
 1. discuss on what the length of each data (input, weight, output) is going to be <br/>
 currently it's 16bit (MSB is for sign and the rest is for number) and it's from BRAM -> it's not a floating point cacluation.   <br/>
-2. edit parts that are commented  " here" regarding the length of data we choose and BRAM size<br/><br/>
+2. edit parts that are commented  " here" regarding the length of data we choose and BRAM size<br/>
+3. change the defined variable numbers for our design<br/><br/>
+
 
 I made tb to test the multiple layers of matrix multiplications<br/>
 the testcase right now is (in decimal representation, but it's actually in hex in bram.data), <br/>
@@ -40,4 +42,5 @@ The input to NN_top.v from bram is: nn_bram_data, bram_complete<br/>
 Every port means the same thing as LAB3 except that the name changed from sha to nn for all of them.<br/>
 Except nn_layer_nums. THis should be the number of total layer we are going to have.<br/><br/>
 
-For this verilog code, make sure we have more than 3 layers total!!!!!!<br/>
+For this verilog code, make sure we have more than 3 layers total!!!!!!!!! <br/>
+One for input, one for final output, and at least one for the hidden layer <br/>
