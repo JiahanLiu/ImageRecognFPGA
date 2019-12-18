@@ -29,13 +29,13 @@ def evaluate_numpy_nn(x):
 
     # Hidden layers
     for h in range(num_hidden_layers):
+        # print(hidden_layer_weights[h].shape)
         x = np.matmul(hidden_layer_weights[h], x) + hidden_layer_biases[h] # H: W*x + b
         x = np.maximum(x, 0) # ReLU
     # Output layer
     x = np.matmul(output_layer_weight, x) + output_layer_bias # Output: W*x + b
-    # Log softmax
-    e_x = np.exp(x - np.max(x))
-    return np.log(e_x / e_x.sum())
+
+    return x
 
 def load_numpy_model():
     global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
@@ -110,6 +110,31 @@ def try_model(model_path):
 
     print("Accuracy: " + str(acc))
 
+def test_np(test_loader):
+    correct_count, all_count = 0, 0
+    for images, labels in test_loader:
+        for i in range(len(labels)):
+            image = images[i].view(1, 784)
+            image_np = image.numpy()
+            image_np = image_np.reshape(784)
+            numpy_output = evaluate_numpy_nn(image_np)
+            pred_label = np.argmax(numpy_output)
+            true_label = labels.numpy()[i]
+            if(true_label == pred_label):
+                correct_count += 1
+            all_count += 1
+    acc = 100 * correct_count / all_count # model accuracy
+    return acc, correct_count, all_count
+
+def try_model_np():
+    load_numpy_model()
+    convert_weights_to_int()
+
+    real_test_loader = data_loader.get_real_image_loader()
+    acc = test_np(real_test_loader)
+
+    print("Accuracy: " + str(acc))
+
 def preprocess_camera_image(jpg_path, black_threshold=.20, crop_margin=0.75):
     # Open with PIL
     with Image.open(jpg_path) as img_PIL:
@@ -176,9 +201,8 @@ def camera(model_path):
     print("Done")
 
 def camera_numpy(model_path):
-    model = torch.load(model_path)
-    parse_pytorch_model(model)
     load_numpy_model()
+    convert_weights_to_int()
 
     cv2.namedWindow("preview")
     vc = cv2.VideoCapture(1)
@@ -202,20 +226,86 @@ def camera_numpy(model_path):
         image = preprocess_camera_image(img_path)
         image = image.reshape(784)
         numpy_output = evaluate_numpy_nn(image)
+        numpy_output = numpy_output * 1000
         prediction = np.argmax(numpy_output)
         
         print(prediction)
+        # print(numpy_output)
 
     cv2.destroyWindow("preview")
     vc.release()
     
     print("Done")
 
+def convert_weights_to_int():
+    global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
+    multiplier = 1024
+
+    hidden_layer_weights[0] = hidden_layer_weights[0] * multiplier
+    hidden_layer_weights[0] = hidden_layer_weights[0].astype(np.int64)
+
+    hidden_layer_weights[1] = hidden_layer_weights[1] * multiplier
+    hidden_layer_weights[1] = hidden_layer_weights[1].astype(np.int64)
+
+    hidden_layer_biases[0] = hidden_layer_biases[0] * multiplier
+    hidden_layer_biases[0] = hidden_layer_biases[0].astype(np.int64)
+
+    hidden_layer_biases[1] = hidden_layer_biases[1] * multiplier
+    hidden_layer_biases[1] = hidden_layer_biases[1].astype(np.int64)
+
+    output_layer_weight = output_layer_weight * multiplier
+    output_layer_weight = output_layer_weight.astype(np.int64)
+
+    output_layer_bias = output_layer_bias * multiplier
+    output_layer_bias = output_layer_bias.astype(np.int64)
+
+def print_comma_seperated_list(list):
+    output = "{"
+    for item in list[:-1]:
+        output += str(item) + ", "
+    output += str(list[-1])
+    output += "},"
+
+    print(output)
+
+def get_w_1(row):
+    global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
+
+    print_comma_seperated_list(hidden_layer_weights[0][row])
+
+
+def get_weights(row):
+    global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
+
+    get_w_1(row)
+
+    # print(num_hidden_layers) # 2
+    # print(len(hidden_layer_weights)) # 2
+    # print(hidden_layer_weights[0].shape) # 200 X 784
+    # print(hidden_layer_weights[1].shape) # 200 X 200
+
+    # print(len(hidden_layer_biases)) # 2
+    # print(hidden_layer_biases[0].shape) #200
+    # print(hidden_layer_biases[1].shape) #200
+
+    # print(output_layer_weight.shape) # 10, 200
+    # print(output_layer_bias.shape) # 10
+
+def fpga_int64_weights(row):
+    load_numpy_model()
+    convert_weights_to_int()
+    get_weights(row)
+
+
 def main():
     # camera(model_path_real_data)
-    camera_numpy(model_path_real_data)
+    # camera_numpy(model_path_real_data)
 
     # try_model(model_path_real_data)
+    # try_model_np()
+
+    # fpga_int32_weights(model_path)
+    fpga_int64_weights(6)
 
 if __name__ == "__main__":
     main()
