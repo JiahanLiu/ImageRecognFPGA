@@ -302,7 +302,7 @@ def fpga_int64_parameters(layer):
     # get_weights(layer)
     # get_biases(layer)
     # get_output_weights()
-    get_output_biases()
+    # get_output_biases()
 
     # print(num_hidden_layers) # 2
     # print(len(hidden_layer_weights)) # 2
@@ -316,7 +316,13 @@ def fpga_int64_parameters(layer):
     # print(output_layer_weight.shape) # 10, 200
     # print(output_layer_bias.shape) # 10
 
+def zero_test():
+    zero_img = np.zeros(784)
 
+    numpy_output = evaluate_numpy_nn(zero_img)
+    numpy_output = numpy_output * 1000
+
+    print(numpy_output)
 
 def main():
     # camera(model_path_real_data)
@@ -326,7 +332,9 @@ def main():
     # try_model_np()
 
     # fpga_int32_weights(model_path)
-    fpga_int64_parameters(1)
+    # fpga_int64_parameters(1)
+
+    zero_test()
 
 if __name__ == "__main__":
     main()
