@@ -259,25 +259,50 @@ def convert_weights_to_int():
     output_layer_bias = output_layer_bias * multiplier
     output_layer_bias = output_layer_bias.astype(np.int64)
 
-def print_comma_seperated_list(list):
+def get_comma_seperated_list(list):
     output = "{"
     for item in list[:-1]:
         output += str(item) + ", "
     output += str(list[-1])
-    output += "},"
+    output += "},\n"
 
-    print(output)
+    return output
 
-def get_w_1(row):
+def get_weights(layer):
     global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
 
-    print_comma_seperated_list(hidden_layer_weights[0][row])
+    with open("./cpp_helper.cpp", "a") as f:
+        for row in hidden_layer_weights[layer]:
+            f.write(get_comma_seperated_list(row))
 
-
-def get_weights(row):
+def get_output_weights():
     global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
 
-    get_w_1(row)
+    with open("./cpp_helper.cpp", "a") as f:
+        for row in output_layer_weight:
+            f.write(get_comma_seperated_list(row))
+
+def get_biases(layer):
+    global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
+
+    with open("./cpp_helper.cpp", "a") as f:
+        result = get_comma_seperated_list(hidden_layer_biases[layer])
+        f.write(result)
+
+def get_output_biases():
+    global hidden_layer_weights, hidden_layer_biases, num_hidden_layers, output_layer_weight, output_layer_bias
+
+    with open("./cpp_helper.cpp", "a") as f:
+        result = get_comma_seperated_list(output_layer_bias)
+        f.write(result)
+
+def fpga_int64_parameters(layer):
+    load_numpy_model()
+    convert_weights_to_int()
+    # get_weights(layer)
+    # get_biases(layer)
+    # get_output_weights()
+    get_output_biases()
 
     # print(num_hidden_layers) # 2
     # print(len(hidden_layer_weights)) # 2
@@ -291,10 +316,6 @@ def get_weights(row):
     # print(output_layer_weight.shape) # 10, 200
     # print(output_layer_bias.shape) # 10
 
-def fpga_int64_weights(row):
-    load_numpy_model()
-    convert_weights_to_int()
-    get_weights(row)
 
 
 def main():
@@ -305,7 +326,7 @@ def main():
     # try_model_np()
 
     # fpga_int32_weights(model_path)
-    fpga_int64_weights(6)
+    fpga_int64_parameters(1)
 
 if __name__ == "__main__":
     main()
