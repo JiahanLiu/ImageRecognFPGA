@@ -13,3 +13,5 @@ Browse to your IP Address
 This opens up the Jupyter Notebook
 
 The notebooks used for the final project are under the final project folder.
+
+Final Presentation: https://docs.google.com/presentation/d/1IPNW106RAfOCumXfHlQUO2C8_5FgsQu1nbprYW50nY4/edit?usp=sharing
